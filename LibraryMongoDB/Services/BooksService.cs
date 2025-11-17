@@ -36,6 +36,11 @@ namespace LibraryMongoDB.Services
                 .First().Index;
         }
 
+        public async Task<Book> GetBookByIndex(int index)
+        {
+            return await _booksCollection.Find(book => book.Index ==  index).FirstOrDefaultAsync();
+        }
+
         public async Task CreateBook(Book newBook)
         {
             try
@@ -48,14 +53,14 @@ namespace LibraryMongoDB.Services
             }
         }
 
-        public async Task UpdateBook(int id, Book updatedBook)
+        public async Task UpdateBook(string id, Book updatedBook)
         {
-            await _booksCollection.ReplaceOneAsync(book => book.Index == id, updatedBook);
+            await _booksCollection.ReplaceOneAsync(book => book.Id == id, updatedBook);
         }
 
-        public async Task DeleteBook(int id)
+        public async Task DeleteBook(string id)
         {
-            await _booksCollection.DeleteOneAsync(book => book.Index == id);
+            await _booksCollection.DeleteOneAsync(book => book.Id == id);
         }
     }
 }

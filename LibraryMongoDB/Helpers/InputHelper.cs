@@ -8,13 +8,18 @@ namespace LibraryMongoDB.Helpers
 {
     public class InputHelper
     {
-        public static string ReadString(string message, string messageError)
+        public static string ReadString(string message, string messageError, string defaultValue = "")
         {
             string? input;
             do
             {
                 Console.Write(message);
                 input = Console.ReadLine();
+                if (string.IsNullOrEmpty(input) && !string.IsNullOrEmpty(defaultValue))
+                {
+                    return defaultValue;
+                }
+
                 if (string.IsNullOrWhiteSpace(input))
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
@@ -27,7 +32,7 @@ namespace LibraryMongoDB.Helpers
             return input;
         }
 
-        public static int ReadInt(string message, string messageError)
+        public static int ReadInt(string message, string messageError, int defaultValue = 0)
         {
             int input;
             bool isValid;
@@ -42,8 +47,14 @@ namespace LibraryMongoDB.Helpers
                     Console.WriteLine(messageError);
                     Console.ResetColor();
                 }
+
+                if(userInput == null && defaultValue != 0)
+                {
+                    return defaultValue;
+                }
             } while (!isValid);
             return input;
         }
+
     }
 }

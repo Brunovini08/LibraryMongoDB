@@ -13,7 +13,7 @@ var booksService = new BooksService(booksCollection);
 var authorsService = new AuthorsService(authorsCollection);
 
 var bookUI = new BookUI(booksService, authorsService);
-
+var authorUI = new AuthorUI(booksService, authorsService);
 
 bool finish = false;
 do
@@ -51,13 +51,51 @@ do
                         case 0:
                             finishBook = true;
                             break;
+                        default:
+                            Console.WriteLine("Opção inválida, digite novamente");
+                            Console.ReadKey();
+                            Console.Clear();
+                            break;
                     }
                 } while (!finishBook);
             }
             break;
         case 2:
             {
-                Menu.ShowAuthorsMenu();
+                bool finishAuthor = false;
+                do
+                {
+                    Menu.ShowAuthorsMenu();
+                    int optionAuthor = InputHelper.ReadInt("Digite a opção do menu que deseja: ", "Digite um valor númerico!");
+
+                    switch (optionAuthor)
+                    {
+                        case 1:
+                            authorUI.ListAuthors();
+                            Console.ReadKey();
+                            break;
+                        case 2:
+                            authorUI.InsertAuthor();
+                            Console.ReadKey();
+                            break;
+                        case 3: 
+                            authorUI.UpdateAuthor();
+                            Console.ReadKey();
+                            break;
+                        case 4:
+                            authorUI.DeleteAuthor();
+                            Console.ReadKey();
+                            break;
+                        case 0:
+                            finishAuthor = true;
+                            break;
+                        default:
+                            Console.WriteLine("Opção inválida, digite novamente");
+                            Console.ReadKey();
+                            Console.Clear();
+                            break;
+                    }
+                } while (!finishAuthor);
             }
             break;
         case 0:

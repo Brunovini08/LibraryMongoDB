@@ -28,5 +28,10 @@ namespace LibraryMongoDB.Models
             Country = country;
             Index = index;
         }
+
+        public override string ToString()
+        {
+            return $"{Name} ({Country})";
+        }
     }
 }

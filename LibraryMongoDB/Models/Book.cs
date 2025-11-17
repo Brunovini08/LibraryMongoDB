@@ -32,5 +32,10 @@ namespace LibraryMongoDB.Models
             Year = year;
             Index = index;
         }
+
+        public override string ToString()
+        {
+            return $"Título: {this.Title}\nAno de Publicação: {this.Year}";
+        }
     }
 }
