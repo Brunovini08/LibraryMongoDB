@@ -15,10 +15,11 @@ namespace LibraryMongoDB.Models
         public string Name { get; private set; }
         public string Country { get; private set; }
         public int Index {  get; private set; }
-        public Author(string name, string country)
+        public Author(string name, string country, int index)
         {
             Name = name;
             Country = country;
+            Index = index;
         }
 
         public Author(string id, string name, string country, int index)
@@ -31,7 +32,7 @@ namespace LibraryMongoDB.Models
 
         public override string ToString()
         {
-            return $"{Name} ({Country})";
+            return $"Identificação: {Index}\nNome: {Name}\nPaís de Origem: {Country}\n";
         }
     }
 }

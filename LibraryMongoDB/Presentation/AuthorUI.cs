@@ -20,7 +20,7 @@ namespace LibraryMongoDB.Presentation
             _authorsService = authorsService;
         }
 
-        public async void InsertAuthor()
+        public async Task InsertAuthor()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -30,8 +30,8 @@ namespace LibraryMongoDB.Presentation
             string name = InputHelper.ReadString("Digite o nome do autor que deseja cadastrar: ", "Digite o nome do autor!");
             Console.WriteLine();
             string country = InputHelper.ReadString("Digite o país do autor que deseja cadastrar: ", "Digite o país do autor!");
-
-            var author = new Author(name, country);
+            int lastIndex = await _authorsService.GetLastAuthorIndex(); 
+            var author = new Author(name, country, lastIndex + 1);
                 try
                 {
                     await _authorsService.CreateAuthor(author);
@@ -39,7 +39,6 @@ namespace LibraryMongoDB.Presentation
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Autor cadastrado com sucesso!");
                     Console.ResetColor();
-                    Console.ReadKey();
                 }
                 catch (Exception ex)
                 {
@@ -47,7 +46,7 @@ namespace LibraryMongoDB.Presentation
                 }
         }
 
-        public async void ListAuthors()
+        public async Task ListAuthors()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -57,8 +56,49 @@ namespace LibraryMongoDB.Presentation
             var authors = await _authorsService.GetAllAuthors();
             if (authors.Count == 0)
             {
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("Não existe autores cadastrados no sistema");
-                Console.ReadKey();
+                Console.ResetColor();
+            }
+            else
+            {
+                foreach (var author in authors)
+                {
+                    Console.WriteLine(author.ToString());
+                }
+            }
+        }
+
+        public async Task ListAuthor()
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("LISTANDO UM AUTOR POR NÚMERO DE IDENTIFIÇÃO: ");
+            Console.ResetColor();
+            int index = InputHelper.ReadInt("Digite o número de identificação do Livro: ", "Digite o ID Numérico");
+            var author = await _authorsService.GetAuthorByIndex(index);
+            if(author == null)
+            {
+                Console.WriteLine("Autor não existe!");
+
+            } else
+            {
+                Console.WriteLine(author.ToString());
+            }
+        }
+
+        public async Task UpdateAuthor()
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("MODIFICANDO AUTOR");
+            Console.ResetColor();
+            Console.WriteLine("Caso não queira não queira alterar nenhuma informação, aperte ENTER");
+            Console.WriteLine();
+            var authors = await _authorsService.GetAllAuthors();
+            if (authors.Count == 0)
+            {
+                Console.WriteLine("Não existe autores cadastrados no sistema");
             }
             else
             {
@@ -66,37 +106,90 @@ namespace LibraryMongoDB.Presentation
                 {
                     Console.WriteLine($"{author.Index} - {author.Name}");
                 }
-                Console.ReadKey();
+
+                int index = InputHelper.ReadInt("Digite a identificação do autor para ser modificado: ", "Digite o identificador!");
+                var authorSearch = await _authorsService.GetAuthorByIndex(index);
+                if (authorSearch != null)
+                {
+                    string name = InputHelper.ReadString("Digite o nome do autor que deseja alterar: ", "Digite o nome do autor!", authorSearch.Name);
+                    Console.WriteLine();
+                    string country = InputHelper.ReadString("Digite o país do autor que deseja alterar: ", "Digite o país do autor!", authorSearch.Country);
+                    Author author = new Author(authorSearch.Id, name, country, authorSearch.Index);
+
+                    try
+                    {
+                        await _authorsService.UpdateAuthor(authorSearch.Id, author);
+                        Console.WriteLine();
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("Autor alterado com sucesso!");
+                        Console.ResetColor();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                } else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Autor não existe, tente novamente!");
+                    Console.ResetColor();
+
+                }
             }
         }
 
-        public async void ListAuthor()
+        public async Task DeleteAuthor()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("LISTANDO UM AUTOR POR NÚMERO DE IDENTIFIÇÃO: ");
+            Console.WriteLine("DELETANDO AUTOR DO SISTEMA");
             Console.ResetColor();
-            int index = InputHelper.ReadInt("Digite o número de identificação do Livro: ", "Digite o ID Numérico");
-            var author = _authorsService.GetAuthorByIndex(index);
-            if(author == null)
+            Console.WriteLine();
+
+            Console.WriteLine("LISTA DOS AUTORES");
+            Console.WriteLine();
+            var authors = await _authorsService.GetAllAuthors();
+            if (authors.Count == 0)
             {
-                Console.WriteLine("Autor não existe!");
-                Console.ReadKey();
-            } else
-            {
-                Console.WriteLine(author.ToString());
-                Console.ReadKey();
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Não existe autores cadastrados no sistema");
+                Console.ResetColor();
             }
-        }
-
-        public async void UpdateAuthor()
-        {
-
-        }
-
-        public async void DeleteAuthor()
-        {
-
+            else
+            {
+                foreach (var author in authors)
+                {
+                    Console.WriteLine($"{author.Index} - {author.Name}");
+                }
+                int indexBook = InputHelper.ReadInt("Digite a identificação do autor para ser deletado: ", "Digite o identificador!");
+                var authorSearch = await _authorsService.GetAuthorByIndex(indexBook);
+                if (authorSearch != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Ao deletar o autor, todos os livros que tiverem vínculo com o mesmo serão deletados");
+                    Console.ResetColor();
+                    string confirm = InputHelper.ReadString("Deseja realmente deletar o autor (SIM - NAO): ", "Digite o valor Correto, por favor (SIM - NAO)", "nao");
+                    if(confirm.ToLower() == "sim")
+                    {
+                        try
+                        {
+                            await _authorsService.DeleteAuthor(authorSearch.Id);
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine("Autor deletado com sucesso!");
+                            Console.ResetColor();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    } else if(confirm.ToLower() == "nao") { }
+                } else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("O Index digitado não existe! Tente Novamente");
+                    Console.ResetColor();
+                }
+            }
         }
     }
 }

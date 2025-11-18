@@ -10,50 +10,42 @@ namespace LibraryMongoDB.Helpers
     {
         public static string ReadString(string message, string messageError, string defaultValue = "")
         {
-            string? input;
-            do
+            while (true)
             {
                 Console.Write(message);
-                input = Console.ReadLine();
-                if (string.IsNullOrEmpty(input) && !string.IsNullOrEmpty(defaultValue))
-                {
+                string? input = Console.ReadLine();       
+                if (string.IsNullOrEmpty(input) && defaultValue != "")
                     return defaultValue;
-                }
-
-                if (string.IsNullOrWhiteSpace(input))
+                else if (!string.IsNullOrWhiteSpace(input))
+                    return input;
+                else
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(messageError);
-                    Console.ReadKey();
-                    Console.Clear();
                     Console.ResetColor();
                 }
-            } while (string.IsNullOrWhiteSpace(input));
-            return input;
+            }
         }
+
 
         public static int ReadInt(string message, string messageError, int defaultValue = 0)
         {
-            int input;
-            bool isValid;
-            do
+            while (true)
             {
                 Console.Write(message);
-                string? userInput = Console.ReadLine();
-                isValid = int.TryParse(userInput, out input);
-                if (!isValid)
+                string? userInput = Console.ReadLine()?.Trim();
+                
+                if (string.IsNullOrWhiteSpace(userInput) && defaultValue != 0)
+                    return defaultValue;
+                else if (int.TryParse(userInput, out int input))
+                    return input;
+                else
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(messageError);
                     Console.ResetColor();
                 }
-
-                if(userInput == null && defaultValue != 0)
-                {
-                    return defaultValue;
-                }
-            } while (!isValid);
-            return input;
+            }
         }
 
     }

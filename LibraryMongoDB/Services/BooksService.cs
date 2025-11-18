@@ -28,12 +28,16 @@ namespace LibraryMongoDB.Services
             return await _booksCollection.Find(book => book.Index == id).FirstOrDefaultAsync();
         }
 
-        public int GetLastBookIndex()
+        public async Task<int> GetLastBookIndex()
         {
-            return _booksCollection
+            var book = await _booksCollection
                 .Find(FilterDefinition<Book>.Empty)
                 .SortByDescending(book => book.Index)
-                .First().Index;
+                .FirstOrDefaultAsync();
+
+            if (book == null) return 0;
+            else if (book.Index == 0) return 0;
+            else return book.Index;
         }
 
         public async Task<Book> GetBookByIndex(int index)

@@ -13,13 +13,13 @@ namespace LibraryMongoDB.Presentation
     {
         public readonly BooksService _booksService;
         public readonly AuthorsService _authorsService;
-        public BookUI(BooksService bookService, AuthorsService authorsService) 
+        public BookUI(BooksService bookService, AuthorsService authorsService)
         {
             _booksService = bookService;
             _authorsService = authorsService;
         }
 
-        public async void InsertBook()
+        public async Task InsertBook()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -30,8 +30,8 @@ namespace LibraryMongoDB.Presentation
             Console.WriteLine();
             int year = InputHelper.ReadInt("Digite o ano de lançamento do livro que deseja cadastrar: ", "Digite o ano de lançamento do livro!");
 
-            var authors =  await _authorsService.GetAllAuthors();
-            if(authors.Count == 0)
+            var authors = await _authorsService.GetAllAuthors();
+            if (authors.Count == 0)
             {
                 Console.Clear();
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -39,20 +39,19 @@ namespace LibraryMongoDB.Presentation
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("Por favor, Adicione um autor para adicionar um livro!");
                 Console.ResetColor();
-                Console.ReadKey();
             } else
             {
                 Author author;
                 do
                 {
                     Console.Clear();
-                    _authorsService.ShowAuthors();
+                    await _authorsService.ShowAuthors();
                     int index = InputHelper.ReadInt("Digite o número de identificação do Autor para vincular ao Livro: ", "Digite o número de identificação do autor!");
                     author = await _authorsService.GetAuthorByIndex(index);
                 } while (author is null);
 
 
-                Book book = new Book(title, author.Index, year, _booksService.GetLastBookIndex() + 1);
+                Book book = new Book(title, author.Index, year, await _booksService.GetLastBookIndex() + 1);
 
                 try
                 {
@@ -61,17 +60,17 @@ namespace LibraryMongoDB.Presentation
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Livro cadastrado com sucesso!");
                     Console.ResetColor();
-                } catch(Exception ex)
+                } catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
                 }
 
             }
 
-          
+
         }
 
-        public async void ListBooks()
+        public async Task ListBooks()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -79,21 +78,20 @@ namespace LibraryMongoDB.Presentation
             Console.ResetColor();
             Console.WriteLine();
             var books = await _booksService.GetAllBooks();
-            if(books.Count == 0)
+            if (books.Count == 0)
             {
                 Console.WriteLine("Não existe livros cadastrados no sistema");
-                Console.ReadKey();
             } else
             {
-                foreach(var book in books)
+                foreach (var book in books)
                 {
-                    Console.WriteLine($"{book.Index} - {book.Title}");
+                    var author = await _authorsService.GetAuthorByIndex(book.AuthorId);
+                    Console.WriteLine($"Título: {book.Title}\nAno de Publicação: {book.Year}\nAutor: {author.Name}\n");
                 }
-                Console.ReadKey();
             }
         }
 
-        public async void ListBook()
+        public async Task ListBook()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -102,18 +100,16 @@ namespace LibraryMongoDB.Presentation
             int index = InputHelper.ReadInt("Digite o número de identificação do Livro: ", "Digite o ID Numérico");
 
             var book = await _booksService.GetBookByIndex(index);
-            if(book == null)
+            if (book == null)
             {
                 Console.WriteLine("O Livro não existe!");
-                Console.ReadKey();
             } else
             {
                 Console.WriteLine(book.ToString());
-                Console.ReadKey();
             }
         }
 
-        public async void UpdateBook()
+        public async Task UpdateBook()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -125,7 +121,6 @@ namespace LibraryMongoDB.Presentation
             if (books.Count == 0)
             {
                 Console.WriteLine("Não existe livros cadastrados no sistema");
-                Console.ReadKey();
             }
             else
             {
@@ -137,61 +132,56 @@ namespace LibraryMongoDB.Presentation
                 int index = InputHelper.ReadInt("Digite a identificação do livro para ser modificado: ", "Digite o identificador!");
                 var bookSearch = await _booksService.GetBookByIndex(index);
                 if (bookSearch != null) {
-                    Console.ReadKey();
+                    string title = InputHelper.ReadString("Digite o título do livro que deseja alterar: ", "Digite o título do livro!", bookSearch.Title);
                     Console.WriteLine();
-
-                    string title = InputHelper.ReadString("Digite o título do livro que deseja cadastrar: ", "Digite o título do livro!", bookSearch.Title);
-                    Console.WriteLine();
-                    int year = InputHelper.ReadInt("Digite o ano de lançamento do livro que deseja cadastrar: ", "Digite o ano de lançamento do livro!", bookSearch.Year);
+                    int year = InputHelper.ReadInt("Digite o ano de lançamento do livro que deseja alterar: ", "Digite o ano de lançamento do livro!", bookSearch.Year);
 
                     var authors = await _authorsService.GetAllAuthors();
-                        if (authors.Count == 0)
+                    if (authors.Count == 0)
+                    {
+                        Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Você não pode modificar nenhum livro - Nenhum Autor Cadastrado");
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("Por favor, Adicione um autor para adicionar um livro!");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Author author;
+                        do
                         {
                             Console.Clear();
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("Você não pode modificar nenhum livro - Nenhum Autor Cadastrado");
-                            Console.ForegroundColor = ConsoleColor.Yellow;
-                            Console.WriteLine("Por favor, Adicione um autor para adicionar um livro!");
-                            Console.ResetColor();
-                            Console.ReadKey();
-                        }
-                        else
+                            await _authorsService.ShowAuthors();
+                            int indexAuthor = InputHelper.ReadInt("Digite o número de identificação do Autor para vincular ao Livro que deseja alterar: ", "Digite o número de identificação do autor!", bookSearch.AuthorId);
+                            author = await _authorsService.GetAuthorByIndex(indexAuthor);
+                        } while (author is null);
+
+                        Book book = new Book(bookSearch.Id, author.Index, title, year, bookSearch.Index);
+
+                        try
                         {
-                            Author author;
-                            do
-                            {
-                                Console.Clear();
-                                _authorsService.ShowAuthors();
-                                int indexAuthor = InputHelper.ReadInt("Digite o número de identificação do Autor para vincular ao Livro: ", "Digite o número de identificação do autor!", bookSearch.AuthorId);
-                                author = await _authorsService.GetAuthorByIndex(index);
-                            } while (author is null);
-
-                            Book book = new Book(bookSearch.Id, author.Index, title, year, bookSearch.Index);
-
-                            try
-                            {
-                                await _booksService.UpdateBook(book.Id, book);
-                                Console.WriteLine();
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.WriteLine("Livro cadastrado com sucesso!");
-                                Console.ResetColor();
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                            }
+                            await _booksService.UpdateBook(book.Id, book);
+                            Console.WriteLine();
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine("Livro alterado com sucesso!");
+                            Console.ResetColor();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
                     }
                 }
                 else
                 {
                     Console.WriteLine("O Livro não existe!");
-                    Console.ReadKey();
                 }
             }
 
         }
 
-        public async void DeleteBook()
+        public async Task DeleteBook()
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -205,7 +195,6 @@ namespace LibraryMongoDB.Presentation
             if (books.Count == 0)
             {
                 Console.WriteLine("Não existe livros cadastrados no sistema");
-                Console.ReadKey();
             }
             else
             {
@@ -213,7 +202,7 @@ namespace LibraryMongoDB.Presentation
                 {
                     Console.WriteLine($"{book.Index} - {book.Title}");
                 }
-                Console.ReadKey();
+
                 int indexBook = InputHelper.ReadInt("Digite a identificação do livro para ser deletado:", "Digite o identificador!");
                 var bookSearch = await _booksService.GetBookByIndex(indexBook);
                 if(bookSearch != null)
@@ -222,11 +211,14 @@ namespace LibraryMongoDB.Presentation
                     {
                         await _booksService.DeleteBook(bookSearch.Id);
                         Console.WriteLine("Livro deletado com sucesso!");
-                        Console.ReadKey();
-                    } catch (Exception ex)
+                    } 
+                    catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                     }
+                } else
+                {
+                    Console.WriteLine("O Index digitado não existe! Tente Novamente");
                 }
             }
         }
